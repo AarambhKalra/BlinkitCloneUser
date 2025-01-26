@@ -1,7 +1,9 @@
 package aarambh.apps.blinkitcloneuser.auth
 
 import aarambh.apps.blinkitcloneuser.R
+import aarambh.apps.blinkitcloneuser.Utils
 import aarambh.apps.blinkitcloneuser.databinding.FragmentOTPBinding
+import aarambh.apps.blinkitcloneuser.viewmodels.AuthViewModel
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,29 +11,87 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.findViewTreeViewModelStoreOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 
 class OTPFragment : Fragment() {
 
+    private val viewModel: AuthViewModel by viewModels()
     private lateinit var binding: FragmentOTPBinding
-    private lateinit var useraNumber: String
+    private lateinit var userNumber: String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentOTPBinding.inflate(layoutInflater)
+        onBackButtonClicked()
+
         getUserNumber()
 
         customizingEnteringOTP()
 
-        onBackButtonClicked()
+        sendOTP()
+
+        onLoginButtonClicked()
+        observeErrors()
         return binding.root
     }
 
+    private fun onLoginButtonClicked() {
+        binding.btnLogin.setOnClickListener {
+            val editTexts = arrayOf(
+                binding.etOtp1,
+                binding.etOtp2,
+                binding.etOtp3,
+                binding.etOtp4,
+                binding.etOtp5,
+                binding.etOtp6
+            )
+            val otp = editTexts.joinToString("") { it.text.toString() }
+
+            if (otp.length < editTexts.size) {
+                Utils.showToast(requireContext(), "Please enter valid OTP")
+            } else {
+                editTexts.forEach { it.text?.clear();it.clearFocus() }
+                verifyOTP(otp)
+            }
+        }
+    }
+
+    private fun verifyOTP(otp: String) {
+        Utils.showDialog(requireContext(), "Verifying OTP...")
+        viewModel.signInWithPhoneAuthCredential(otp, userNumber)
+        lifecycleScope.launch {
+            viewModel.isSignedInSuccessfully.collect {
+                if (it) {
+                    Utils.hideDialog()
+                    Utils.showToast(requireContext(), "Logged In Successfully")
+                }
+            }
+        }
+    }
+
+    private fun sendOTP() {
+        Utils.showDialog(requireContext(), "Sending OTP...")
+        viewModel.apply {
+            sendOTP(userNumber, requireActivity())
+            lifecycleScope.launch {
+                otpSent.collect {
+                    if (it) {
+                        Utils.hideDialog()
+                        Utils.showToast(requireContext(), "OTP sent successfully")
+                    }
+                }
+            }
+        }
+    }
+
     private fun onBackButtonClicked() {
-        binding.tbOtpFragment.setNavigationOnClickListener{
+        binding.tbOtpFragment.setNavigationOnClickListener {
             findNavController().navigate(R.id.action_OTPFragment_to_signInFragment)
         }
     }
@@ -76,9 +136,19 @@ class OTPFragment : Fragment() {
 
     private fun getUserNumber() {
         val bundle = arguments
-        useraNumber = bundle?.getString("number").toString()
+        userNumber = bundle?.getString("number").toString()
 
-        binding.tvUserNumber.text = useraNumber
+        binding.tvUserNumber.text = userNumber
     }
 
+    private fun observeErrors() {
+        lifecycleScope.launch {
+            viewModel.error.collect { errorMessage ->
+                errorMessage?.let {
+                    Utils.hideDialog()
+                    Utils.showToast(requireContext(), it)
+                }
+            }
+        }
+    }
 }
