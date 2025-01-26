@@ -13,6 +13,7 @@
         <action
             android:id="@+id/action_splashFragment_to_signInFragment"
             app:destination="@id/signInFragment"
+            app:enterAnim="@anim/from_right"
             app:popUpTo="@id/splashFragment"
             app:popUpToInclusive="true" />
     </fragment>
@@ -23,11 +24,19 @@
         tools:layout="@layout/fragment_sign_in" >
         <action
             android:id="@+id/action_signInFragment_to_OTPFragment"
-            app:destination="@id/OTPFragment" />
+            app:destination="@id/OTPFragment"
+            app:enterAnim="@anim/from_right"/>
     </fragment>
     <fragment
         android:id="@+id/OTPFragment"
-        android:name="aarambh.apps.blinkitcloneuser.OTPFragment"
+        android:name="aarambh.apps.blinkitcloneuser.auth.OTPFragment"
         android:label="fragment_o_t_p"
-        tools:layout="@layout/fragment_o_t_p" />
+        tools:layout="@layout/fragment_o_t_p" >
+        <action
+            android:id="@+id/action_OTPFragment_to_signInFragment"
+            app:destination="@id/signInFragment"
+            app:popUpTo="@id/signInFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/from_left"/>
+    </fragment>
 </navigation>

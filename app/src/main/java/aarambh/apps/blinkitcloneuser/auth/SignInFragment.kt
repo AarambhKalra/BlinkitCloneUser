@@ -31,6 +31,7 @@ class SignInFragment : Fragment() {
 
         onContinueButtonClick()
 
+
         return binding.root
     }
 
