@@ -4,6 +4,7 @@ import aarambh.apps.blinkitcloneuser.R
 import aarambh.apps.blinkitcloneuser.Utils
 import aarambh.apps.blinkitcloneuser.databinding.FragmentSignInBinding
 import aarambh.apps.blinkitcloneuser.databinding.FragmentSplashBinding
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -79,15 +80,11 @@ class SignInFragment : Fragment() {
 
     private fun setStatusBarColor() {
         activity?.window?.apply {
-            val statusBarColors = ContextCompat.getColor(
-                requireContext(),
-                com.google.android.material.R.color.mtrl_btn_transparent_bg_color
-            )
-            statusBarColor = statusBarColors
+            statusBarColor = Color.TRANSPARENT // Set the status bar color to transparent
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
             }
-
         }
     }
+
 }

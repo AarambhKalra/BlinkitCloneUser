@@ -2,8 +2,11 @@ package aarambh.apps.blinkitcloneuser.auth
 
 import aarambh.apps.blinkitcloneuser.R
 import aarambh.apps.blinkitcloneuser.Utils
+import aarambh.apps.blinkitcloneuser.activity.UsersMainActivity
 import aarambh.apps.blinkitcloneuser.databinding.FragmentOTPBinding
+import aarambh.apps.blinkitcloneuser.models.Users
 import aarambh.apps.blinkitcloneuser.viewmodels.AuthViewModel
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -12,9 +15,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.launch
 
 class OTPFragment : Fragment() {
@@ -37,12 +40,15 @@ class OTPFragment : Fragment() {
         sendOTP()
 
         onLoginButtonClicked()
+
+
         observeErrors()
         return binding.root
     }
 
     private fun onLoginButtonClicked() {
         binding.btnLogin.setOnClickListener {
+            Utils.showDialog(requireContext(), "Signing you...")
             val editTexts = arrayOf(
                 binding.etOtp1,
                 binding.etOtp2,
@@ -54,6 +60,7 @@ class OTPFragment : Fragment() {
             val otp = editTexts.joinToString("") { it.text.toString() }
 
             if (otp.length < editTexts.size) {
+                Utils.hideDialog()
                 Utils.showToast(requireContext(), "Please enter valid OTP")
             } else {
                 editTexts.forEach { it.text?.clear();it.clearFocus() }
@@ -63,13 +70,14 @@ class OTPFragment : Fragment() {
     }
 
     private fun verifyOTP(otp: String) {
-        Utils.showDialog(requireContext(), "Verifying OTP...")
         viewModel.signInWithPhoneAuthCredential(otp, userNumber)
         lifecycleScope.launch {
             viewModel.isSignedInSuccessfully.collect {
                 if (it) {
                     Utils.hideDialog()
                     Utils.showToast(requireContext(), "Logged In Successfully")
+                    startActivity(Intent(requireContext(), UsersMainActivity::class.java))
+                    requireActivity().finish()
                 }
             }
         }
